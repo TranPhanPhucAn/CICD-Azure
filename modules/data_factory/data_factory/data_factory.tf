@@ -49,17 +49,11 @@ resource "azurerm_data_factory_pipeline" "copy_data" {
   activities_json = <<JSON
 [
   {
-    "name": "CopyFromSourceTo",
+    "name": "CopyFromSourceToDestination",
     "type": "Copy",
-    "inputs": [
-      {"name": "source_dataset"}
-    ],
-    "outputs": [
-      {"name": "destination_dataset"}
-    ],
     "typeProperties": {
       "source": {
-        "type": BinarySource,
+        "type": "BinarySource",
         "recursive": true
       },
       "sink": {
@@ -67,14 +61,35 @@ resource "azurerm_data_factory_pipeline" "copy_data" {
       },
       "enableStaging": false
     },
-    "policies": {
+    "policy": {
       "timeout": "7.00:00:00",
       "retry": 0,
       "retryIntervalInSeconds": 30,
-      "SecureOutput": false,
-      "SecureOutput": false,
-    }
+      "secureInput": false,
+      "secureOutput": false
+    },
+    "scheduler": {
+      "frequency": "Day",
+      "interval": 1
+    },
+    "external": true,
+    "inputs": [
+      {
+        "referenceName": "source_dataset",
+        "type": "DatasetReference"
+      }
+    ],
+    "outputs": [
+      {
+        "referenceName": "destination_dataset",
+        "type": "DatasetReference"
+      }
+    ]
   }
 ]
 JSON
+  depends_on = [
+    azurerm_data_factory_dataset_binary.source_dataset,
+    azurerm_data_factory_dataset_binary.destination_dataset,
+  ]
 }
